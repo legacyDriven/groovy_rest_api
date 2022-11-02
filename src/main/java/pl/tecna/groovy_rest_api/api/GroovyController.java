@@ -1,11 +1,15 @@
 package pl.tecna.groovy_rest_api.api;
 
 import lombok.AllArgsConstructor;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.reactive.function.client.WebClient;
 import pl.tecna.groovy_rest_api.infrastructure.GroovyDto;
 import pl.tecna.groovy_rest_api.service.GroovyService;
+import reactor.core.publisher.Mono;
 
 
 @RestController
@@ -15,78 +19,46 @@ public class GroovyController {
 
     private final GroovyService groovyService;
 
-    @GetMapping("/groovy/{name}")
+    private final WebClient.Builder webClient;
+
+    private final String crudOpsServiceUrl = "http://tecna-groovy-data-service/groovy/";
+
+    @GetMapping("/{name}")
     @ResponseBody
-    public ResponseEntity<GroovyDto> get(@PathVariable String name){
-        GroovyDto result = groovyService.getScriptByName(name);
-        return new ResponseEntity<GroovyDto>(
-                groovyService.getScriptByName(name), HttpStatus.OK);
+    public ResponseEntity<String> getScriptResult(@PathVariable String name){
+        return new ResponseEntity<>("inside rest api service" + name, HttpStatus.OK);
     }
 
-    @PostMapping("/users")
-    @ResponseStatus(HttpStatus.CREATED)
-    public void createGroovyEntity(@RequestBody GroovyDto groovyDto) {
-        groovyService.persistGroovyEntity(groovyDto);
-        System.out.println("created new user");
+    @PostMapping("/{groovyDto}")
+    @ResponseBody
+    public ResponseEntity<GroovyDto> createGroovyEntity(@RequestBody GroovyDto groovyDto){
+        GroovyDto dto = webClient.build().post().uri(crudOpsServiceUrl).header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .body(Mono.just(groovyDto), GroovyDto.class).retrieve().bodyToMono(GroovyDto.class).block();
+        return new ResponseEntity<>(dto, HttpStatus.OK);
     }
 
-//    @GetMapping(value = "/groovy/")
+//    @GetMapping("/groovy/{name}")
 //    @ResponseBody
-//    public ResponseEntity<List<GroovyDto>>
-//
-//
-//
-//    @DeleteMapping(value = "/groovy/{name}")
-//    @ResponseBody
-//    public ResponseEntity<String> deleteByScriptName(@PathVariable String name){
-//
-//        var isDeleted = groovyService.delete(name);
-//
-//        if(!isDeleted) return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-//
-//        return new ResponseEntity<>(name, HttpStatus.OK);
+//    public ResponseEntity<Page<GroovyDto>> get(GroovyScriptPage page){
+//        Page<GroovyDto> result = groovyService.getScripts(page);
+//        return new ResponseEntity<>(result, HttpStatus.OK);
 //    }
-}
 
-/*
+//    @PostMapping("/{groovyDto}")
+//    @ResponseStatus(HttpStatus.CREATED)
+//    public ResponseEntity<GroovyDto> createGroovyEntity(@RequestBody GroovyDto groovyDto) {
+//        groovyService.persistGroovyEntity(groovyDto);
+//        System.out.println("created new user");
+//        return new ResponseEntity<>(groovyDto, HttpStatus.OK);
+//    }
 
-@DeleteMapping(value = "/posts/{id}")
-    public ResponseEntity<Long> deletePost(@PathVariable Long id) {
-
-        var isRemoved = postService.delete(id);
-
-        if (!isRemoved) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
-
-        return new ResponseEntity<>(id, HttpStatus.OK);
-    }
-
-@RestController
-@RequestMapping("/api")
-public class UserController {
-
-    @Autowired
-    private UserService userService;
-
-    @GetMapping("/users/{email}")
+    @DeleteMapping("/{name}")
     @ResponseBody
-    public ResponseEntity<UserDto> getUserByLoginPath(@PathVariable String email) throws EntityNotFoundException {
-        return new ResponseEntity<>(userService.getUserByLogin(email), HttpStatus.OK);
-    }
-
-    @GetMapping("/users")
-    @ResponseBody
-    public ResponseEntity<List<UserDto>> getAllUsers(){
-        return new ResponseEntity<>(userService.getAllUsers(), HttpStatus.OK);
-    }
-
-    @PostMapping("/users")
-    @ResponseStatus(HttpStatus.CREATED)
-    public void createUser(@RequestBody UserDto userDto) throws UserExistsException, InvalidEmailFormatException {
-        userService.createUser(userDto);
-        System.out.println("created new user");
+    public ResponseEntity<String> deleteByName(@PathVariable String name) {
+//        if(groovyService.getScriptByName(name)==null){
+//            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+//        }
+        groovyService.deleteByName(name);
+        return new ResponseEntity<>(String.format("Groovy script: %s has beed deleted.", name), HttpStatus.OK);
     }
 }
-
- */

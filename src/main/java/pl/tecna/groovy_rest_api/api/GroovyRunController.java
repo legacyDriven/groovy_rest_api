@@ -17,8 +17,10 @@ public class GroovyRunController {
     @ResponseBody
     public ResponseEntity<String> runScriptByName(@PathVariable String name){
         if(name.equals("gienek"))
-            return new ResponseEntity<>("fuck you from the api" + name, HttpStatus.OK);
+            return new ResponseEntity<>("hello from the groovyrunner api, " + name, HttpStatus.OK);
 
         return new ResponseEntity<>("avesatan" + name, HttpStatus.OK);
     }
+
+
 }
